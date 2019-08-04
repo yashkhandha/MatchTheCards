@@ -19,7 +19,7 @@ class ViewController: UIViewController, UICollectionViewDelegate, UICollectionVi
     var firstFlippedCardIndex: IndexPath?
     
     var timer: Timer?
-    var milliseconds: Float = 10 * 1000 // 10 seconds
+    var milliseconds: Float = 60 * 1000 // 10 seconds
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -32,6 +32,10 @@ class ViewController: UIViewController, UICollectionViewDelegate, UICollectionVi
         
         timer = Timer.scheduledTimer(timeInterval: 0.001, target: self, selector: #selector(elapsedTime), userInfo: nil, repeats: true)
         RunLoop.main.add(timer!, forMode: .common)
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        SoundManager.playSound(.shuffle)
     }
     
     // MARK: - Timer methods
@@ -88,6 +92,9 @@ class ViewController: UIViewController, UICollectionViewDelegate, UICollectionVi
             // Flip the card
             cell?.flip()
             
+            // Play flip sound
+            SoundManager.playSound(.flip)
+            
             // Set the status
             card.isFlipped = true
             
@@ -121,6 +128,11 @@ class ViewController: UIViewController, UICollectionViewDelegate, UICollectionVi
         if firstCard.imageName == secondCard.imageName{
             // It is a match
             
+            // Play match sound
+            DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 0.5){
+                SoundManager.playSound(.match)
+            }
+            
             //Set the statuses of the matched cards
             firstCard.isMatched = true
             secondCard.isMatched = true
@@ -134,6 +146,11 @@ class ViewController: UIViewController, UICollectionViewDelegate, UICollectionVi
         }
         else{
             //It is not a match
+            
+            // Play no match sound
+            DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 0.5){
+                SoundManager.playSound(.nomatch)
+            }
             
             //Set the statuses of the cards
             firstCard.isFlipped = false
@@ -199,7 +216,15 @@ class ViewController: UIViewController, UICollectionViewDelegate, UICollectionVi
         
         alert.addAction(alertAction)
         
-        present(alert, animated: true, completion: nil)
+        present(alert, animated: true, completion: resetGame)
+    }
+    
+    func resetGame(){
+        
+        collectionView.reloadData()
+        
+        timer = Timer.scheduledTimer(timeInterval: 0.001, target: self, selector: #selector(elapsedTime), userInfo: nil, repeats: true)
+        RunLoop.main.add(timer!, forMode: .common)
     }
 }
 
